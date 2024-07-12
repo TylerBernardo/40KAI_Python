@@ -40,8 +40,8 @@ class Dice{
                 }
             }
         }
-        console.log(this.constantTerm)
-        console.log(this.dice);
+        //console.log(this.constantTerm)
+        //console.log(this.dice);
     }
     //get the total sum of the results
     roll(){

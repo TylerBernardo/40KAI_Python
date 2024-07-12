@@ -26,8 +26,12 @@ for(var index in results){
 */
 var testBoard= new boardUtil.Board(5,5)
 
-var testUnit = new unitUtil.Unit(testBoard.getTile(2,2),"Test Unit")
+var boltRifle = new unitUtil.KTWeapon(3,3,3,4,null,null)
+
+var testUnit = new unitUtil.Operative(testBoard.getTile(2,2),"Test Unit",6,3,1,3,3,14,boltRifle,null,testBoard)
 testUnit.move(testBoard.getTile(3,3))
+
+var testUnit2 = new unitUtil.Operative(testBoard.getTile(1,0),"Test Unit 2",6,3,1,3,3,14,boltRifle,null,testBoard)
 
 app.get('/', (req, res) => {
   res.send('Hello World!\n' + testBoard.printBoardFormatted());

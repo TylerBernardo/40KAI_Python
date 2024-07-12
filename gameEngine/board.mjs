@@ -28,31 +28,13 @@ class Tile{
         }
         return output;
     }
-    //https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-    lineOfSight(targetTile){
-        //if the points are oriented wrong, swap them.
-        if(targetTile.y > this.y || targetTile.x < this.x){
-            return targetTile.lineOfSight(this)
-        }
-        var dx = targetTile.x - this.x;
-        var dy = targetTile.y - this.y;
-        var D = 2 * dy - dx;
-        var y = this.y;
-        for(var x = this.x; x <= targetTile.x; x += 1){
-            console.log(x,y)
-            if(D > 0){
-                y = y + 1;
-                D = D - 2 * dx;
-            }
-            D = D + 2 * dy;
-        };
+    
         /*
         //target tile should always be greater than the 
         if(targetTile.x < this.x || targetTile.y < this.y){
             return targetTile.lineOfSight(this);
         }
             */
-    }
 
 };
 
@@ -100,6 +82,30 @@ class Board{
     getTile(x,y){
         return this.tiles[y][x]
     }
+
+    //https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+    lineOfSight(startTile,targetTile){
+        //if the points are oriented wrong, swap them.
+        if(targetTile.x < startTile.x){
+            //console.log(targetTile.x,targetTile.y)
+            return this.lineOfSight(targetTile,startTile)
+        }
+        var dx = targetTile.x - startTile.x;
+        var dy = targetTile.y - startTile.y;
+        var D = 2 * dy - dx;
+        var y = startTile.y;
+        for(var x = startTile.x; x <= targetTile.x; x += 1){
+            if(this.tiles[y][x].blocksLOS){
+                return false;
+            }
+            if(D > 0){
+                y = y + 1;
+                D = D - 2 * dx;
+            }
+            D = D + 2 * dy;
+        };
+        return true;
+    }
 };
 
 //represents a object on the board
@@ -108,7 +114,8 @@ class BoardObject{
     currentTile = null;
     constructor(tile,name){
         this.name = name;
-        this.currentTiletile = tile;
+        this.currentTile = tile;
+        tile.boardObjects.push(this);
     }
     //move this object to the given tile
     move(dTile){
@@ -117,6 +124,13 @@ class BoardObject{
             this.currentTile.removeObject(this.name);
         }
         this.currentTile = dTile;
+    }
+    //remove this object from the board
+    remove(){
+        if(this.currentTile != null){
+            this.currentTile.removeObject(this.name);
+        }
+        delete this;
     }
 }
 

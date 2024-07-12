@@ -1,14 +1,27 @@
+//import server packages
 import express from 'express';
-//var express = require("express")
+import http from "http"
+//create __dirname
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+//40k AI files
 import * as boardUtil from "./gameEngine/board.mjs";
 import * as unitUtil from "./gameEngine/units.mjs"
 import * as diceUtil from "./gameEngine/dice.mjs"
+//create express app
 const app = express();
+const server = http.createServer(app)
+import {Server} from "socket.io"
+const io = new Server(server)
 
-var testDice = new diceUtil.Dice("D3+2D6+2")
+app.use(express.static(__dirname + '/UI'))
 
 //test dice class
 /*
+var testDice = new diceUtil.Dice("D3+2D6+2")
 var total = 100000;
 var average = 0;
 var results = Array(17).fill(0);
@@ -33,10 +46,17 @@ testUnit.move(testBoard.getTile(3,3))
 
 var testUnit2 = new unitUtil.Operative(testBoard.getTile(1,0),"Test Unit 2",6,3,1,3,3,14,boltRifle,null,testBoard)
 
+testUnit2.attackUnitRanged(testUnit)
+
 app.get('/', (req, res) => {
-  res.send('Hello World!\n' + testBoard.printBoardFormatted());
+  //res.send('Hello World!\n' + testBoard.printBoardFormatted());
+  res.sendFile(__dirname + '/UI/index.html')
 });
 
-app.listen(3000, () => {
-  console.log('Express server initialized');
+io.on('connection', (socket) => {
+  console.log("user connected")
+})
+
+server.listen(3000, () => {
+  console.log('server initialized');
 });

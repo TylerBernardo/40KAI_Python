@@ -44,6 +44,7 @@ class Operative extends BoardObject{
     rangedWeapon;
     meleeWeapon;
     board;
+    activated = false;
     constructor(tile,name,movement,actionPoints,groupActivation,defense,save,wounds,rangedWeapon,meleeWeapon,board){
         super(tile,name);
         this.movement = movement;
@@ -103,6 +104,8 @@ class Operative extends BoardObject{
 
         unitToAttack.takeDamage(totalDamage);
     }
+
+    getType(){return "Operative"}
 }
 
 export {

@@ -1,4 +1,3 @@
-
 //represents a single tile in the board. holds information about that tile. Each tile represents a 1 inch x 1 inch square on a in person board
 class Tile{
     x = -1;
@@ -25,6 +24,9 @@ class Tile{
         //console.log(this.boardObjects)
         for(var object of this.boardObjects){
             output += object.name;
+            if(object.getType() == "Operative"){
+                output += "(" + object.wounds + ")"
+            }
         }
         return output;
     }
@@ -106,6 +108,22 @@ class Board{
         };
         return true;
     }
+
+    distance(tile1,tile2){
+        return Math.sqrt( (tile1.x-tile2.x)^2 + (tile1.y-tile2.y)^2 )
+    }
+
+    getValidMoves(tile,movement){
+        var validMoves = []
+        for(var x = Math.max(0,tile.x - movement); x <Math.min(tile.x + movement,width); x++){
+            for(var y = Math.max(0,tile.y - movement); y < Math.min(tile.y + movement,height); y++){
+                if(Math.sqrt(x^2 + y^2) <= movement){
+                    validMoves.push([x,y])
+                }
+            }
+        }
+        return validMoves;
+    }
 };
 
 //represents a object on the board
@@ -132,6 +150,8 @@ class BoardObject{
         }
         delete this;
     }
+
+    getType(){return "BoardObject"}
 }
 
 //can block line of sight, block movement, or both
@@ -144,6 +164,8 @@ class Terrain extends BoardObject{
         this.blocksLOS = blocksLOS;
         tile.blocksLOS = blocksLOS;
     }
+
+    getType(){return "Terrain"}
 }
 
 export {

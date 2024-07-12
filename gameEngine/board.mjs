@@ -115,8 +115,8 @@ class Board{
 
     getValidMoves(tile,movement){
         var validMoves = []
-        for(var x = Math.max(0,tile.x - movement); x <Math.min(tile.x + movement,width); x++){
-            for(var y = Math.max(0,tile.y - movement); y < Math.min(tile.y + movement,height); y++){
+        for(var x = Math.max(0,tile.x - movement); x <Math.min(tile.x + movement,this.width); x++){
+            for(var y = Math.max(0,tile.y - movement); y < Math.min(tile.y + movement,this.height); y++){
                 if(Math.sqrt(x^2 + y^2) <= movement){
                     validMoves.push([x,y])
                 }

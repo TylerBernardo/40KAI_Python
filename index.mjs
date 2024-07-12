@@ -11,11 +11,14 @@ const __dirname = dirname(__filename);
 import * as boardUtil from "./gameEngine/board.mjs";
 import * as unitUtil from "./gameEngine/units.mjs"
 import * as diceUtil from "./gameEngine/dice.mjs"
+import * as playerUtil from "./gameEngine/player.mjs"
 //create express app
 const app = express();
 const server = http.createServer(app)
 import {Server} from "socket.io"
 const io = new Server(server)
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 app.use(express.static(__dirname + '/UI'))
 
@@ -37,7 +40,7 @@ for(var index in results){
   console.log((index) + ": " + Math.round(results[index]*100/total))
 }
 */
-var testBoard= new boardUtil.Board(5,5)
+var testBoard= new boardUtil.Board(30,22)
 
 var boltRifle = new unitUtil.KTWeapon(3,3,3,4,null,null)
 
@@ -46,7 +49,23 @@ testUnit.move(testBoard.getTile(3,3))
 
 var testUnit2 = new unitUtil.Operative(testBoard.getTile(1,0),"Test Unit 2",6,3,1,3,3,14,boltRifle,null,testBoard)
 
-testUnit2.attackUnitRanged(testUnit)
+var testPlayer = new playerUtil.KT_AI_Player(1,testBoard)
+testPlayer.addOperative(testUnit)
+testPlayer.addOperative(testUnit2)
+
+//testUnit2.attackUnitRanged(testUnit)
+
+async function demo(socket){
+  for(var i = 0; i < 10; i++){
+    testPlayer.movement(testUnit)
+    io.emit("setModel",testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1")
+    await delay(1000)
+    testPlayer.movement(testUnit2)
+    io.emit("setModel",testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2","2")
+    await delay(1000)
+  }
+}
+
 
 app.get('/', (req, res) => {
   //res.send('Hello World!\n' + testBoard.printBoardFormatted());
@@ -55,6 +74,14 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log("user connected")
+
+  socket.on("ready", () => {
+    console.log("user is ready")
+    io.emit("buildTable",30,22)
+    io.emit("setModel",testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1")
+    io.emit("setModel",testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2","2")
+    demo(socket)
+  })
 })
 
 server.listen(3000, () => {

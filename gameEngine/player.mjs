@@ -35,14 +35,24 @@ class KTPlayer{
     activationTurn(){}
 }
 
-class KT_AI_Player{
+class KT_AI_Player extends KTPlayer{
     constructor(player,board){
         super(player,board)
     }
 
+    sortCompare(a,b){
+        if(a[0] < b[0]){
+            return -1
+        }
+        if(a[0] > b[0]){
+            return 1;
+        }
+        return 0;
+    }
+
     chooseActivation(){
         var possibleChoices = []
-        for(var operative of operatives){
+        for(var operative of this.operatives){
             if(!operative.activated){
                 possibleChoices.push(operative);
             }
@@ -52,29 +62,74 @@ class KT_AI_Player{
         return toReturn;
     }
 
+    evaluateMove(operative,moveCords){
+        var currentDistanceToEnemies = 0;
+        var newDistanceToEnemies = 0;
+        for(var enemy of this.opponent.operatives){
+            currentDistanceToEnemies += this.board.distance(enemy.currentTile,operative.currentTile)
+            newDistanceToEnemies += this.board.distance(enemy.currentTile,this.board.getTile(moveCords[0],moveCords[1]))
+        }
+        //TODO: Use neural network here
+        //TODO: Check if move puts you in engagement range of an enemy operative
+        inputs = [currentDistanceToEnemies,newDistanceToEnemies,this.board.distance(operative.currentTile,this.board.getTile(moveCords[0],moveCords[1])),operative.save,operative.defense,operative.wounds,operative.rangedWeapon.range]
+        return Math.random();
+    }
+
+    evaluateShot(operative,target){
+        inputs = [this.board.distance(operative.currentTile,target.currentTile),operative.rangedWeapon.ws,operative.rangedWeapon.attacks, operative.rangedWeapon.damage,target.defense, target.save,target.wounds]
+        //todo: use neural network here
+        return Math.random();
+    }
+
     movement(operative){
-        var possibleMoves = board.getValidMoves(operative.currentTile,operative.movement);
+        var possibleMoves = this.board.getValidMoves(operative.currentTile,operative.movement);
         //select move at random currently. This will eventually be done with the ai
-        var moveToMake = possibleMoves[Math.round(Math.random() * (possibleMoves.length-1))+1]
-        operative.move(board.getTile(moveToMake[0],moveToMake[1]))
+        for(var i = 0; i < possibleMoves.length; i++){
+            possibleMoves[i] = [this.evaluateMove(operative,possibleMoves[i]),possibleMoves[i]]
+        }
+        //account for charges
+        for(var cTarget of this.opponent.operatives){
+            if(this.board.distance(operative.currentTile,cTarget.currentTile) <= operative.movement + 2){
+                possibleMoves.push([this.evaluateMove(operative,[cTarget.currentTile.x,cTarget.currentTile.y]),[cTarget.currentTile.x,cTarget.currentTile.y]])
+            }
+        }
+        possibleMoves.sort(sortCompare)
+        for(var move of possibleMoves){
+            if(Math.random() <= move[0]){
+                operative.move(this.board.getTile(move[1][0],move[1][1]))
+                return;
+            }
+        }
+    
     }
 
     decideShooting(operative){
-        var possibleTargets = opponent.operatives;
-        var done = false;
-        while(!done){
-            var target = possibleTargets[Math.round(Math.random() * (possibleTargets.length -1))+1]
+        //check if shooting is even possible for this operative
+        var possibleTargets = [];
+        for(var target of opponent.operatives){
+            //evaluate all possible targets
             if(distance(operative.currentTile,target.currentTile) > operative.rangedWeapon.range){
-                continue;
+                possibleTargets.push([evaluateShot(operative,target),target])
             }
-            operative.attackUnitRanged(target);
+        }
+        if(possibleTargets.length == 0){
+            return
+        }
+        //choose which shot to take
+        possibleTargets.sort(sortCompare)
+        for(var pTarget of possibleTargets){
+            if(Math.random() <= pTarget[0]){
+                operative.attackUnitRanged(target[1]);
+                return
+            }
         }
     }
-
+    //we will assume an operative will always fight in melee if it can
     activationTurn(){
+        activationsRemaining--;
         var activeOperative = chooseActivation()
-        this.movement(operative)
-        this.decideShooting(operative)
+        this.movement(activeOperative)
+        this.decideShooting(activeOperative)
     }
 }
 

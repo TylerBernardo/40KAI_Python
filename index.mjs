@@ -40,18 +40,20 @@ for(var index in results){
   console.log((index) + ": " + Math.round(results[index]*100/total))
 }
 */
-var testBoard= new boardUtil.Board(30,22)
+var testBoard= new boardUtil.Board(22,30)
 
-var boltRifle = new unitUtil.KTWeapon(3,3,3,4,null,null)
+var boltRifle = new unitUtil.Weapon(3,3,3,4,null,null)
 
-var testUnit = new unitUtil.Operative(testBoard.getTile(2,2),"Test Unit",6,3,1,3,3,14,boltRifle,null,testBoard)
-testUnit.move(testBoard.getTile(3,3))
+var intercessorModel = new unitUtil.Unit(6,3,1,3,3,14,boltRifle,null)
 
-var testUnit2 = new unitUtil.Operative(testBoard.getTile(1,0),"Test Unit 2",6,3,1,3,3,14,boltRifle,null,testBoard)
+var testUnit = new unitUtil.UnitWrapper(testBoard.getTile(2,2),"Test Unit",testBoard,[intercessorModel.clone()])
+//testUnit.move(testBoard.getTile(3,3))
 
-var testPlayer = new playerUtil.KT_AI_Player(1,testBoard)
-testPlayer.addOperative(testUnit)
-testPlayer.addOperative(testUnit2)
+var testUnit2 = new unitUtil.UnitWrapper(testBoard.getTile(2,2),"Test Unit2",testBoard,[intercessorModel.clone()])
+
+var testPlayer = new playerUtil.Warhammer_AI_Player(1,testBoard)
+testPlayer.addUnit(testUnit)
+testPlayer.addUnit(testUnit2)
 
 //testUnit2.attackUnitRanged(testUnit)
 

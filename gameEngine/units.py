@@ -1,7 +1,6 @@
-import board;
-import dice;
+import gameEngine.board as board;
+import gameEngine.dice as dice;
 import math;
-import units as Units
 import copy
 
 class Weapon:
@@ -49,12 +48,36 @@ class Weapon:
     
         return output;
 
+#40K unit
+#keep array of models for wound allocation and weapon tracking
+#optional character property
+class Unit:
+    #TODO: rewrite properties for a 40k units
+    movement:int=0;
+    toughness:int=0;
+    save:int=0;
+    wounds:int=0;
+    rangedWeapon:Weapon=None;
+    meleeWeapon:Weapon=None;
+    def __init__(self,movement:int,toughness:int,save:int,wounds:int,rangedWeapon:Weapon,meleeWeapon:Weapon):
+        self.movement = movement;
+        self.save = save;
+        self.wounds = wounds;
+        self.rangedWeapon = rangedWeapon;
+        self.meleeWeapon = meleeWeapon;
+        self.toughness = toughness;
+    
+
+    def clone(self):
+        return copy.deepcopy(self) #structuredClone(this);
+        #return new this(this.movement,this.toughness,this.save,this.wounds.this.rangedWeapon,this.meleeWeapon)
+
 class UnitWrapper(board.BoardObject):
     units = []
     character = None;
-    def __init__(self,tile : board.Tile,name : str,_units:list[Units.Unit]):
-        super(tile,name);
-        self._units = _units;
+    def __init__(self,tile : board.Tile,name : str,units:list[Unit]):
+        board.BoardObject.__init__(self,tile,name);
+        self.units = units;
     
 
     #make saving throws based on the incoming attacks
@@ -67,20 +90,20 @@ class UnitWrapper(board.BoardObject):
 
         #reduce the number of regular attacks based on the save
         #attackDice[0] = Math.max(0,attackDice[0]-successes[0] - 2 * successes[1]);
-        return math.max(wounds-successes,0);
+        return max(wounds-successes,0);
 
     #TODO: rewrite for multiple models in a unit
     def takeDamage(self,damageToTake:int)->None:
         self.units[0].wounds -= damageToTake;
         if(self.units[0].wounds <= 0):
-            if(self.units.length == 1):
+            if(len(self.units) == 1):
                 self.remove();
                 return;
             #pull the unit from the back of the list to the front
-            self.units[0] = self.units[self.units.length - 1];
+            self.units[0] = self.units[len(self.units) - 1];
             self.units.pop();
 
-    def attackUnitRanged(self,unitToAttack:Units.Unit) -> None:
+    def attackUnitRanged(self,unitToAttack:Unit) -> None:
         #check if line of sight is ok
         lineOfSight = self.board.lineOfSight(self.currentTile,unitToAttack.currentTile);
         if(not lineOfSight):
@@ -100,26 +123,3 @@ class UnitWrapper(board.BoardObject):
         return "Unit"
 
 
-#40K unit
-#keep array of models for wound allocation and weapon tracking
-#optional character property
-class Unit:
-    #TODO: rewrite properties for a 40k units
-    movement:int=0;
-    toughness:int=0;
-    save:int=0;
-    wounds:int=0;
-    rangedWeapon:Weapon=None;
-    meleeWeapon:Weapon=None;
-    def _init_(self,movement:int,toughness:int,save:int,wounds:int,rangedWeapon:Weapon,meleeWeapon:Weapon):
-        self.movement = movement;
-        self.save = save;
-        self.wounds = wounds;
-        self.rangedWeapon = rangedWeapon;
-        self.meleeWeapon = meleeWeapon;
-        self.toughness = toughness;
-    
-
-    def clone(self):
-        return copy.deepCopy(self) #structuredClone(this);
-        #return new this(this.movement,this.toughness,this.save,this.wounds.this.rangedWeapon,this.meleeWeapon)

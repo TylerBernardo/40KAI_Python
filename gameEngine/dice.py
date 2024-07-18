@@ -1,10 +1,11 @@
 import math
+from random import random;
 
 #each entry in the array represents the sides of that dice. Returns an array of the results for each dice
 def rollNSidedDice(diceArray : list[int]) -> list[int]:
-    output = list(diceArray.length);
+    output = [0] * len(diceArray);
     for n in diceArray:
-        output[n] = math.round(math.random() * (diceArray[n] - 1) + 1);
+        output[n] = math.round(random() * (diceArray[n] - 1) + 1);
     return output;
 
 

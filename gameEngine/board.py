@@ -13,7 +13,7 @@ class Tile:
     
     #remove the BoardObject that has the name "objectName"
     def removeObject(self,objectName:str) -> bool:
-        for i in range(self.boardObjects.length):
+        for i in range(len(self.boardObjects)):
             if(self.boardObjects[i].name == objectName):
                 del self.boardObjects[i]
                 return True;
@@ -37,10 +37,10 @@ class Board:
     def __init__(self,_height:int,_width:int):
         self.height = _height;
         self.width = _width;
-        self.tiles = [];
+        self.tiles = [None] * _height;
         #create array of tiles
         for r in range(_height):
-            self.tiles[r] = [];
+            self.tiles[r] = [None] * _width;
             for c in range(_width):
                 self.tiles[r][c] = Tile(c,r);
     
@@ -94,15 +94,15 @@ class Board:
     
 
     def distance(self,tile1 : Tile,tile2 : Tile) -> float:
-        return math.sqrt( (tile1.x-tile2.x)^2 + (tile1.y-tile2.y)^2 )
+        return math.sqrt( (tile1.x-tile2.x)**2 + (tile1.y-tile2.y)**2 )
     
 
     def getValidMoves(self,tile : Tile,movement : int) -> list[list[int]]:
         validMoves = []
-        for  x in range(math.max(0,tile.x - movement),math.min(tile.x + movement,self.width)):
-            for y in range(math.max(0,tile.y - movement),math.min(tile.y + movement,self.height)):
-                if(math.sqrt(x^2 + y^2) <= movement):
-                    validMoves.push([x,y])
+        for  x in range(max(0,tile.x - movement),min(tile.x + movement,self.width)):
+            for y in range(max(0,tile.y - movement),min(tile.y + movement,self.height)):
+                if(math.sqrt(x**2 + y**2) <= movement):
+                    validMoves.append([x,y])
         return validMoves;
 
 #represents a object on the board
@@ -112,11 +112,11 @@ class BoardObject:
     def __init__(self,_tile : Tile,_name : str):
         self.name = _name;
         self.currentTile = _tile;
-        _tile.boardObjects.push(self);
+        _tile.boardObjects.append(self);
     
     #move this object to the given tile
     def move(self, dTile : Tile) -> None:
-        dTile.boardObjects.push(self);
+        dTile.boardObjects.append(self);
         if(self.currentTile != None):
             self.currentTile.removeObject(self.name);
         

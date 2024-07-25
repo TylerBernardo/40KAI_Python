@@ -33,7 +33,7 @@ if __name__ == '__main__':
 #*/
 testBoard= board.Board(22,30)
 
-boltRifle = units.Weapon(3,3,1,4,None,24,1)
+boltRifle = units.Weapon(dice.Dice("3"),3,1,4,None,24,1)
 
 intercessorModel = units.Unit(6,4,3,2,boltRifle,None)
 

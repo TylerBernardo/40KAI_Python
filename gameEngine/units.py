@@ -11,7 +11,7 @@ class Weapon:
     keywords = [];
     range = 0;
     ap = 0;
-    def __init__(self,attacks:int,ws:int,damage:int,strength:int,keywords:list[str],range:int,ap:int):
+    def __init__(self,attacks:dice.Dice,ws:int,damage:int,strength:int,keywords:list[str],range:int,ap:int):
         self.attacks = attacks;
         self.ws = ws;
         self.damage = damage;
@@ -20,19 +20,8 @@ class Weapon:
         self.range = range;
         self.ap = ap;
     
-    #returns an array of length two. output[0] represents the number of succesful attack dice, and output[1] represents the number of critical successes
-
-    def attack(self,toughness:int)->int:
-        results = dice.multiD6(self.attacks);
-        hits = 0;
-        for result in results:
-            if(result >= self.ws):
-                hits+=1;
-        woundResults = dice.multiD6(hits);
-        output = 0;
-        #determine what it takes to wound
+    def toWound(self,toughness:int)->int:
         toWound = 5;
-
         if self.strength * 2 <= toughness:
             toWound = 6;
         if self.strength < toughness:
@@ -41,7 +30,21 @@ class Weapon:
             toWound = 4;
         if toughness <= self.strength * 2:
             toWound = 2;
+        return toWound
 
+    #returns an array of length two. output[0] represents the number of succesful attack dice, and output[1] represents the number of critical successes
+
+    def attack(self,toughness:int)->int:
+        results = self.attacks.roll();
+        hits = 0;
+        for result in results:
+            if(result >= self.ws):
+                hits+=1;
+        woundResults = dice.multiD6(hits);
+        output = 0;
+        #determine what it takes to wound
+        
+        toWound = self.toWound(toughness)
         for result in results:
             if(result >= toWound):
                 output+=1;
@@ -103,7 +106,7 @@ class UnitWrapper(board.BoardObject):
             self.units[0] = self.units[len(self.units) - 1];
             self.units.pop();
 
-    def attackUnitRanged(self,unitToAttack:Unit) -> None:
+    def attackUnitRanged(self,unitToAttack) -> None:
         #check if line of sight is ok
         lineOfSight = self.board.lineOfSight(self.currentTile,unitToAttack.currentTile);
         if(not lineOfSight):
@@ -112,12 +115,20 @@ class UnitWrapper(board.BoardObject):
         #TODO: redo this sequence for multiple attacking models and weapons of different stats
         #for now iterate over each unit and attack with each of its weapons. redo later into batches when human dice rolling is involved
         for unit in self.units:
-            wounds = unit.rangedWeapon.attack();
+            wounds = unit.rangedWeapon.attack(unitToAttack.units[0].toughness);
 
             succesfulWounds = unitToAttack.savingThrows(wounds);
     
             for i in range(succesfulWounds):
                 unitToAttack.takeDamage(unit.rangedWeapon.damage);
+
+    def estimateAttack(self,unitToAttack) -> int:
+        estimatedDamage = 0;
+        for unit in self.units:
+            estimatedAttacks = unit.rangedWeapon.attacks.expectedPasses(unit.rangedWeapon.ws);
+            estimatedWounds = dice.expectedD6Passes(estimatedAttacks,unitToAttack.units[0].toughness);
+            estimatedDamage += dice.expectedD6Passes(estimatedWounds,unitToAttack.units[0].save + unit.rangedWeapon.ap) * unit.rangedWeapon.damage;
+        return estimatedDamage;
 
     def getType() -> str:
         return "Unit"

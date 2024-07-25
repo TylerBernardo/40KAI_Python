@@ -3,6 +3,14 @@ import gameEngine.dice as dice
 import gameEngine.units as Units
 import math
 from random import random
+import tensorflow as tf
+
+def dense_layer(num_units):
+  return tf.keras.layers.Dense(
+      num_units,
+      activation=tf.keras.activations.relu,
+      kernel_initializer=tf.keras.initializers.VarianceScaling(
+          scale=2.0, mode='fan_in', distribution='truncated_normal'))
 
 class WarhammerPlayer:
     playerNum = 0;
@@ -31,6 +39,9 @@ class WarhammerPlayer:
     #TODO: Add charging
 
 class Warhammer_AI_Player(WarhammerPlayer):
+    #DeepQ network for moving
+    moveNet = None;
+
     def __init__(self,player : int,_board : Board.Board):
         WarhammerPlayer.__init__(self,player,_board)
     
@@ -55,12 +66,12 @@ class Warhammer_AI_Player(WarhammerPlayer):
         inputs = [currentDistanceToEnemies,newDistanceToEnemies,self.board.distance(unit.currentTile,self.board.getTile(moveCords[0],moveCords[1])),unit.units[0].save,unit.units[0].toughness,unit.units[0].movement,unit.units[0].rangedWeapon.range]
         return random();
     
-
+    #dont use neural net for shooting. For now just calculate the expected value of a combat and use that to fuel decisions
     def evaluateShot(self,unit : Units.UnitWrapper,target :Units.UnitWrapper) -> float:
         #TODO:redo inputs for new data scheme
-        inputs = [self.board.distance(unit.currentTile,target.currentTile),unit.rangedWeapon.ws,unit.rangedWeapon.attacks, unit.rangedWeapon.damage,target.defense, target.save,target.wounds]
-        #TODO: use neural network here
-        return random();
+        #inputs = [self.board.distance(unit.currentTile,target.currentTile),unit.rangedWeapon.ws,unit.rangedWeapon.attacks, unit.rangedWeapon.damage,target.defense, target.save,target.wounds]
+        #score a shot based on how many wounds you deal scaled by how tough the target was. This should work decently to pick up small units, while still ensures it takes shots against tanks when it can.
+        return unit.estimateAttack(target) * target.units[0].toughness/4
     
 
     def movement(self, unit : Units.UnitWrapper) -> None:
@@ -90,10 +101,7 @@ class Warhammer_AI_Player(WarhammerPlayer):
         #choose which shot to take
         #possibleTargets.sort(sortCompare)
         possibleMoves = sorted(possibleMoves, key= lambda shot : shot[0], reverse=True)
-        for  pTarget in possibleTargets:
-            if(random() <= pTarget[0]):
-                unit.attackUnitRanged(target[1]);
-                return
+        unit.attackUnitRanged(possibleMoves[1])
 
     def turn(self)->None:
         #move all units

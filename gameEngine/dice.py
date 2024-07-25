@@ -13,12 +13,15 @@ def rollNSidedDice(diceArray : list[int]) -> list[int]:
 def multiD6(count : int) -> list[int]:
     return rollNSidedDice([6] * count);
 
+def expectedD6Passes(count : int, toPass :int):
+    return math.floor((1-(toPass-1)/6) * count);
+
 
 #a dice class capable of rolling the result of any combination of dice
 class Dice:
     #Example diceString: 2d6+3
     constantTerm = 0;
-    dice = [];
+    dice : list[int] = [];
     def __init__(self,diceString : str):
         diceString = diceString.lower()
         #get each individual term of the expression
@@ -50,5 +53,16 @@ class Dice:
             output += result;
         
         return self.constantTerm + output;
-    
+
+    def expectedValue(self) -> int:
+        expectedResult = self.constantTerm;
+        for die in self.dice:
+            expectedResult += math.floor(die/2);
+        return expectedResult;
+
+    def expectedPasses(self,toPass : int) -> int:
+        expectedResult = self.constantTerm
+        for die in self.dice:
+            expectedResult += 1-(toPass-1)/die
+        return math.floor(expectedResult)
 

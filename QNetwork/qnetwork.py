@@ -27,3 +27,7 @@ class QNetwork:
     def calc(self, inputs : list[int]) -> tf.Tensor:
         output = self.q_net(tf.reshape(tf.convert_to_tensor(inputs, dtype=tf.float32),shape=(1,len(inputs))));
         return output;
+
+    def applyGradients(self,grad, learnRate : int):
+        for g, v in zip(grad, self.q_net.trainable_variables):
+            v.assign_add(-1 * learnRate * g)

@@ -7,6 +7,7 @@ import gameEngine.board as board;
 import gameEngine.dice as dice
 import gameEngine.player as player
 import gameEngine.units as units
+import QNetwork.training as training
 #create flask app
 app = Flask(__name__)
 socketio = SocketIO(app);
@@ -50,16 +51,7 @@ testPlayer.addUnit(testUnit2)
 
 #testUnit2.attackUnitRanged(testUnit)
 
-#async function demo(socket){
-#  for(var i = 0; i < 10; i++){
-#    testPlayer.movement(testUnit)
-#    io.emit("setModel",testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1")
-#    await delay(1000)
-#    testPlayer.movement(testUnit2)
-#    io.emit("setModel",testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2","2")
-#    await delay(1000)
-#  }
-#}
+training.train(300,100,0,.01);
 
 @app.route("/")
 def handleMain():

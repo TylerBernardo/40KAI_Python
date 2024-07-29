@@ -44,7 +44,7 @@ class Warhammer_AI_Player(WarhammerPlayer):
     #Inputs: unit position, board information, in cover currently, in cover when ending, distance to closest enemy, movement value
     #Outputs: Q score for each tile on the board
     #For early testing, only pass in board, unit position, and movement characteristic.for board 0 represents empty, -1 = friendly unit, -2 = terrain, and n > 0 represent an enemy with toughness n
-    moveNet : qnetwork.QNetwork = qnetwork.QNetwork(22*30+3,[100,100],22*30);
+    moveNet : qnetwork.QNetwork = qnetwork.QNetwork(22*30+3,[50],22*30);
 
     def __init__(self,player : int,_board : Board.Board):
         WarhammerPlayer.__init__(self,player,_board)
@@ -78,16 +78,20 @@ class Warhammer_AI_Player(WarhammerPlayer):
         return unit.estimateAttack(target) * target.units[0].toughness/4
     
 
-    def movement(self, unit : Units.UnitWrapper) -> None:
+    def movement(self, unit : Units.UnitWrapper,e : int) -> None:
+        if(random() <= e):
+            unit.move(self.board.getTile(math.floor(random()*self.board.width),math.floor(random() * self.board.height)))
+            return;
+        
         inputs = self.board.buildInput(self.playerNum) + [unit.x(),unit.y(),unit.units[0].movement]
         qValues = self.moveNet.calc(inputs);
         #print(qValues);
         #print(type(qValues))
         largestIndex = int(tf.math.argmax(qValues,1).numpy()[0]);
-        print(largestIndex)
+        #print(largestIndex)
         c = largestIndex % self.board.width;
         r = (largestIndex - c) / self.board.width;
-        print(c,r)
+        #print(c,r)
         unit.move(self.board.getTile(int(c),int(r)));
 
     def decideShooting(self,unit : Units.UnitWrapper) -> None:

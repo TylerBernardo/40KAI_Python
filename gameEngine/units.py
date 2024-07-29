@@ -75,12 +75,13 @@ class Unit:
         return copy.deepcopy(self) #structuredClone(this);
         #return new this(this.movement,this.toughness,this.save,this.wounds.this.rangedWeapon,this.meleeWeapon)
 
+#TODO: write wrappers for getting different stats
 class UnitWrapper(board.BoardObject):
-    units = []
-    character = None;
-    def __init__(self,tile : board.Tile,name : str,units:list[Unit]):
-        board.BoardObject.__init__(self,tile,name);
-        self.units = units;
+    def __init__(self,tile : board.Tile,name : str,units:list[Unit], player : int):
+        super().__init__(tile,name);
+        self.units : list[units] = units;
+        self.player : int = player;
+        self.character = None;
     
 
     #make saving throws based on the incoming attacks
@@ -130,7 +131,7 @@ class UnitWrapper(board.BoardObject):
             estimatedDamage += dice.expectedD6Passes(estimatedWounds,unitToAttack.units[0].save + unit.rangedWeapon.ap) * unit.rangedWeapon.damage;
         return estimatedDamage;
 
-    def getType() -> str:
+    def getType(self) -> str:
         return "Unit"
 
 

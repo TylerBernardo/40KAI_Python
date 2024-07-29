@@ -6,8 +6,10 @@ class Tile:
     x = -1;
     y = -1;
     blocksLOS = False;
-    boardObjects = [];
+    #TODO: Update this to just be names so that up to date information can be pulled from the board object
+    
     def __init__(self,_x:int,_y:int):
+        self.boardObjects = [];
         self.x = _x;
         self.y = _y;
     
@@ -20,20 +22,18 @@ class Tile:
         return False;
 
     def toString(self) -> str:
-        output = "";
+        output = ""#"(" + str(self.x) + "," + str(self.y) + "): ";
         #console.log(this.boardObjects)
         for object in self.boardObjects:
             output += object.name;
-            if(object.getType() == "Operative"):
-                output += "(" + object.wounds + ")"
         return output;
     
 
 #represents the game board. Keeps track of unit positions, tiles on the board, and other things.
 class Board:
-    height = 0;
-    width = 0;
-    tiles = [];
+    height : int = 0;
+    width : int = 0;
+    tiles : list[list[Tile]] = [];
     def __init__(self,_height:int,_width:int):
         self.height = _height;
         self.width = _width;
@@ -105,6 +105,31 @@ class Board:
                     validMoves.append([x,y])
         return validMoves;
 
+    def buildInput(self,player:int):
+        output = [0] * (self.height * self.width);
+        for r in range(self.height):
+            for c in range(self.width):
+                if(len(self.tiles[r][c].boardObjects) > 0):
+                    if(self.tiles[r][c].boardObjects[0].getType() == "Unit"):
+                        if(self.tiles[r][c].boardObjects[0].player == player):
+                            output[(r * self.width) + c] = -1;
+                        else:
+                            output[r * self.width + c] = self.tiles[r][c].boardObjects[0].units[0].toughness;
+                    if(self.tiles[r][c].boardObjects[0].getType() == "Terrain"):
+                        output[r * self.width + c] = -2;
+        return output;
+                        
+
+
+#if(len(self.tiles[r][c].boardObjects) > 0):
+#    if(self.tiles[r][c].boardObjects[0].getType() == "Unit"):
+#        if(self.tiles[r][c].boardObjects[0].player == player):
+#            output[(r * self.width) + c] = 0;
+#        else:
+#            output[r * self.width + c] = self.tiles[r][c].boardObjects[0].units[0].toughness;
+#    if(self.tiles[r][c].boardObjects[0].getType() == "Terrain"):
+#        output[r * self.width + c] = -2;
+
 #represents a object on the board
 class BoardObject:
     name = "";
@@ -118,8 +143,7 @@ class BoardObject:
     def move(self, dTile : Tile) -> None:
         dTile.boardObjects.append(self);
         if(self.currentTile != None):
-            self.currentTile.removeObject(self.name);
-        
+            self.currentTile.removeObject(self.name);  
         self.currentTile = dTile;
     
     #remove this object from the board
@@ -129,8 +153,14 @@ class BoardObject:
         #delete this;
     
 
-    def getType() -> str:
+    def getType(self) -> str:
         return "BoardObject"
+    
+    def x(self) -> int :
+        return self.currentTile.x;
+
+    def y(self) -> int :
+        return self.currentTile.y;
 
 
 #can block line of sight, block movement, or both
@@ -145,4 +175,4 @@ class Terrain(BoardObject):
     
 
     def getType(self) -> str:
-        return "Terrain";
+        return "Terrain"

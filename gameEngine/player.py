@@ -4,6 +4,7 @@ import gameEngine.units as Units
 import math
 from random import random
 import tensorflow as tf
+import QNetwork.qnetwork as qnetwork;
 
 def dense_layer(num_units):
   return tf.keras.layers.Dense(
@@ -40,7 +41,10 @@ class WarhammerPlayer:
 
 class Warhammer_AI_Player(WarhammerPlayer):
     #DeepQ network for moving
-    moveNet = None;
+    #Inputs: unit position, board information, in cover currently, in cover when ending, distance to closest enemy, movement value
+    #Outputs: Q score for each tile on the board
+    #For early testing, only pass in board, unit position, and movement characteristic.for board 0 represents empty, -1 = friendly unit, -2 = terrain, and n > 0 represent an enemy with toughness n
+    moveNet : qnetwork.QNetwork = qnetwork.QNetwork(22*30+3,[100,100],22*30);
 
     def __init__(self,player : int,_board : Board.Board):
         WarhammerPlayer.__init__(self,player,_board)
@@ -75,19 +79,19 @@ class Warhammer_AI_Player(WarhammerPlayer):
     
 
     def movement(self, unit : Units.UnitWrapper) -> None:
-        possibleMoves = self.board.getValidMoves(unit.currentTile,unit.units[0].movement);
-        #select move at random currently. This will eventually be done with the ai
-        for i in range(len(possibleMoves)):
-            possibleMoves[i] = [self.evaluateMove(unit,possibleMoves[i]),possibleMoves[i]]
-        
-        #possibleMoves.sort(sortCompare)
-        possibleMoves = sorted(possibleMoves, key= lambda move : move[0], reverse=True)
-        for move in possibleMoves:
-            if(random() <= move[0]):
-                unit.move(self.board.getTile(move[1][0],move[1][1]))
-                return;
+        inputs = self.board.buildInput(self.playerNum) + [unit.x(),unit.y(),unit.units[0].movement]
+        qValues = self.moveNet.calc(inputs);
+        #print(qValues);
+        #print(type(qValues))
+        largestIndex = int(tf.math.argmax(qValues,1).numpy()[0]);
+        print(largestIndex)
+        c = largestIndex % self.board.width;
+        r = (largestIndex - c) / self.board.width;
+        print(c,r)
+        unit.move(self.board.getTile(int(c),int(r)));
 
     def decideShooting(self,unit : Units.UnitWrapper) -> None:
+        #TODO: make more efficent. No need to save all targets now that we just take the one with the best score
         #check if shooting is even possible for this operative
         possibleTargets = [];
         for target in self.opponent.units:

@@ -33,14 +33,16 @@ if __name__ == '__main__':
 #*/
 testBoard= board.Board(22,30)
 
+
 boltRifle = units.Weapon(dice.Dice("3"),3,1,4,None,24,1)
 
 intercessorModel = units.Unit(6,4,3,2,boltRifle,None)
 
-testUnit = units.UnitWrapper(testBoard.getTile(2,2),"Test Unit",[intercessorModel.clone()])
+testUnit = units.UnitWrapper(testBoard.getTile(2,2),"Test Unit",[intercessorModel.clone()],1)
+
 #testUnit.move(testBoard.getTile(3,3))
 
-testUnit2 = units.UnitWrapper(testBoard.getTile(5,3),"Test Unit2",[intercessorModel.clone()])
+testUnit2 = units.UnitWrapper(testBoard.getTile(5,3),"Test Unit2",[intercessorModel.clone()],1)
 
 testPlayer = player.Warhammer_AI_Player(1,testBoard)
 testPlayer.addUnit(testUnit)
@@ -81,10 +83,12 @@ def onReady():
     emit("setModel",(testUnit.currentTile.x,testUnit.currentTile.y,"testUnit",1))
     emit("setModel",(testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2",2))
     sleep(3)
-    for i in range(10):
-        testPlayer.movement(testUnit)
-        emit("setModel",(testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1"))
-        sleep(1)
-        testPlayer.movement(testUnit2)
-        emit("setModel",(testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2","2"))
-        sleep(1)
+    testPlayer.movement(testUnit)
+    emit("setModel",(testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1"))
+    #for i in range(10):
+        #testPlayer.movement(testUnit)
+        #emit("setModel",(testUnit.currentTile.x,testUnit.currentTile.y,"testUnit","1"))
+        #sleep(1)
+        #testPlayer.movement(testUnit2)
+        #emit("setModel",(testUnit2.currentTile.x,testUnit2.currentTile.y,"testUnit2","2"))
+        #sleep(1)
